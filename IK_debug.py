@@ -26,6 +26,73 @@ test_cases = {1:[[[2.16135,-1.42635,1.55109],
               5:[]}
 
 
+def rot_x(q):
+    R_x = Matrix([[ 1,              0,        0],
+                  [ 0,         cos(q),  -sin(q)],
+                  [ 0,         sin(q),  cos(q)]])
+    
+    return R_x
+    
+def rot_y(q):              
+    R_y = Matrix([[ cos(q),        0,  sin(q)],
+                  [      0,        1,       0],
+                  [-sin(q),        0, cos(q)]])
+    
+    return R_y
+
+def rot_z(q):    
+    R_z = Matrix([[ cos(q),  -sin(q),       0],
+                  [ sin(q),   cos(q),       0],
+                  [      0,        0,       1]])
+    
+    return R_z
+
+def trans_matrix(alpha, a, d, q):
+    T = Matrix([[            cos(q),           -sin(q),           0,             a],
+                [ sin(q)*cos(alpha), cos(q)*cos(alpha), -sin(alpha), -sin(alpha)*d],
+                [ sin(q)*sin(alpha), cos(q)*sin(alpha),  cos(alpha),  cos(alpha)*d],
+                [                 0,                 0,           0,             1]])
+    return T
+
+def deg2rad(deg):
+    ''' 
+    Convert degree to radius.
+    '''
+    return deg * pi / 180.
+
+def calculate_123(R_EE, px, py, pz, roll, pitch, yaw):
+    # Compensate for rotation discrepancy between DH parameters and Gazebo
+    Rot_err = rot_z(deg2rad(180.0)) * rot_y(deg2rad(-90.0))
+
+    R_EE = R_EE * Rot_err
+    R_EE = R_EE.subs({'r': roll, 'p': pitch, 'y': yaw})
+    # Find original wrist position with formula described in
+    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/91d017b1-4493-4522-ad52-04a74a01094c/concepts/a1abb738-84ee-48b1-82d7-ace881b5aec0
+    
+    G = Matrix([[px], [py], [pz]])
+    WC = G - (0.303) * R_EE[:, 2]
+
+    # Calculate joint angles using Geometric IK method
+    # Relevant lesson:
+    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/87c52cd9-09ba-4414-bc30-24ae18277d24/concepts/8d553d46-d5f3-4f71-9783-427d4dbffa3a
+    theta1 = atan2(WC[1], WC[0])
+
+    a = 1.50
+    b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
+    c = 1.25 # Length of joint 1 to 2.
+
+    # Angles using cosine laws
+    alpha   = acos((b*b + c*c - a*a) / (2*b*c))
+    beta    = acos((a*a + c*c - b*b) / (2*a*c))
+    delta   = atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
+    theta2  = pi/2 - alpha - delta
+
+    # Look at Z position of -0.054 in link 4 and use it to calculate epsilon
+    epsilon = 0.036 
+    theta3  = pi/2 - (beta + epsilon)
+    return (R_EE, WC, theta1, theta2, theta3)
+
+
 def test_code(test_case):
     ## Set up code
     ## Do not modify!
@@ -63,13 +130,64 @@ def test_code(test_case):
     ## 
 
     ## Insert IK code here!
+    q1, q2, q3, q4, q5, q6, q7 = symbols('q1:8')  # theta_i
+    d1, d2, d3, d4, d5, d6, d7 = symbols('d1:8')
+    a0, a1, a2, a3, a4, a5, a6 = symbols('a0:7')
+    alpha0, alpha1, alpha2, alpha3, alpha4, alpha5, alpha6 = symbols('alpha0:7')
+
+    # Create Modified DH parameters
+    ### KUKA KR210 ###
+    # DH Parameters
+    s = {   alpha0:     0,  a0:       0, d1:  0.75,   q1: q1,
+            alpha1: -pi/2,  a1:    0.35, d2:     0,   q2: q2-pi/2,
+            alpha2:     0,  a2:    1.25, d3:     0,   q3: q3,
+            alpha3: -pi/2,  a3:  -0.054, d4:  1.50,   q4: q4,
+            alpha4:  pi/2,  a4:       0, d5:     0,   q5: q5,
+            alpha5: -pi/2,  a5:       0, d6:     0,   q6: q6,
+            alpha6:     0,  a6:       0, d7: 0.303,   q7: 0}
+
+    # Create individual transformation matrices
+    T0_1 = trans_matrix(alpha0, a0, d1, q1).subs(s)
+    T1_2 = trans_matrix(alpha1, a1, d2, q2).subs(s)
+    T2_3 = trans_matrix(alpha2, a2, d3, q3).subs(s)
+    T3_4 = trans_matrix(alpha3, a3, d4, q4).subs(s)
+    T4_5 = trans_matrix(alpha4, a4, d5, q5).subs(s)
+    T5_6 = trans_matrix(alpha5, a5, d6, q6).subs(s)
+    T6_EE = trans_matrix(alpha6, a6, d7, q7).subs(s)
+
+    T0_EE = simplify(T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_EE)
     
-    theta1 = 0
-    theta2 = 0
-    theta3 = 0
-    theta4 = 0
-    theta5 = 0
-    theta6 = 0
+    px = req.poses[x].position.x
+    py = req.poses[x].position.y
+    pz = req.poses[x].position.z
+
+    (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
+        [req.poses[x].orientation.x, req.poses[x].orientation.y,
+            req.poses[x].orientation.z, req.poses[x].orientation.w])
+
+    ### Your IK code here
+    # Compensate for rotation discrepancy between DH parameters and Gazebo
+    r, p, y = symbols('r p y')
+
+    R_x = rot_x(r)
+    R_y = rot_y(p)
+    R_z = rot_z(y)
+
+    # Rotation matrix of gripper
+    R_EE = R_z * R_y * R_x
+    R_EE, WC, theta1, theta2, theta3 = calculate_123(R_EE, px, py, pz, roll, pitch, yaw)
+    # if theta3.evalf() > 0.0:
+    #     R_EE = R_x * R_y * R_z
+    #     R_EE, WC, theta1, theta2, theta3 = calculate_123(R_EE, px, py, pz, roll, pitch, yaw)
+
+    R0_3 = T0_1[0:3,0:3] * T1_2[0:3,0:3] * T2_3[0:3,0:3]
+    R0_3 = R0_3.evalf(subs={q1:theta1, q2:theta2, q3:theta3})
+    
+    R3_6 = R0_3.inv("LU") * R_EE
+
+    theta4 = atan2(R3_6[2, 2], -R3_6[0, 2])
+    theta5 = atan2(sqrt(R3_6[0, 2]**2+R3_6[2, 2]**2), R3_6[1, 2])
+    theta6 = atan2(-R3_6[1, 1], R3_6[1, 0])
 
     ## 
     ########################################################################################
