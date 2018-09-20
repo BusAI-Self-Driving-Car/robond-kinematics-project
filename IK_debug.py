@@ -60,39 +60,6 @@ def deg2rad(deg):
     '''
     return deg * pi / 180.
 
-def calculate_123(R_EE, px, py, pz, roll, pitch, yaw):
-    # Compensate for rotation discrepancy between DH parameters and Gazebo
-    Rot_err = rot_z(deg2rad(180.0)) * rot_y(deg2rad(-90.0))
-
-    R_EE = R_EE * Rot_err
-    R_EE = R_EE.subs({'r': roll, 'p': pitch, 'y': yaw})
-    # Find original wrist position with formula described in
-    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/91d017b1-4493-4522-ad52-04a74a01094c/concepts/a1abb738-84ee-48b1-82d7-ace881b5aec0
-    
-    G = Matrix([[px], [py], [pz]])
-    WC = G - (0.303) * R_EE[:, 2]
-
-    # Calculate joint angles using Geometric IK method
-    # Relevant lesson:
-    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/87c52cd9-09ba-4414-bc30-24ae18277d24/concepts/8d553d46-d5f3-4f71-9783-427d4dbffa3a
-    theta1 = atan2(WC[1], WC[0])
-
-    a = 1.50
-    b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
-    c = 1.25 # Length of joint 1 to 2.
-
-    # Angles using cosine laws
-    alpha   = acos((b*b + c*c - a*a) / (2*b*c))
-    beta    = acos((a*a + c*c - b*b) / (2*a*c))
-    delta   = atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
-    theta2  = pi/2 - alpha - delta
-
-    # Look at Z position of -0.054 in link 4 and use it to calculate epsilon
-    epsilon = 0.036 
-    theta3  = pi/2 - (beta + epsilon)
-    return (R_EE, WC, theta1, theta2, theta3)
-
-
 def test_code(test_case):
     ## Set up code
     ## Do not modify!
@@ -175,10 +142,37 @@ def test_code(test_case):
 
     # Rotation matrix of gripper
     R_EE = R_z * R_y * R_x
-    R_EE, WC, theta1, theta2, theta3 = calculate_123(R_EE, px, py, pz, roll, pitch, yaw)
-    # if theta3.evalf() > 0.0:
-    #     R_EE = R_x * R_y * R_z
-    #     R_EE, WC, theta1, theta2, theta3 = calculate_123(R_EE, px, py, pz, roll, pitch, yaw)
+
+    # Compensate for rotation discrepancy between DH parameters and Gazebo
+    Rot_err = rot_z(pi) * rot_y(-pi/2)
+
+    R_EE = R_EE * Rot_err
+    R_EE = R_EE.subs({'r': roll, 'p': pitch, 'y': yaw})
+    # Find original wrist position with formula described in
+    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/91d017b1-4493-4522-ad52-04a74a01094c/concepts/a1abb738-84ee-48b1-82d7-ace881b5aec0
+    
+    G = Matrix([[px], [py], [pz]])
+    WC = G - (0.303) * R_EE[:, 2]
+
+    # Calculate joint angles using Geometric IK method
+    # Relevant lesson:
+    # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/87c52cd9-09ba-4414-bc30-24ae18277d24/concepts/8d553d46-d5f3-4f71-9783-427d4dbffa3a
+    theta1 = atan2(WC[1], WC[0])
+
+    a = 1.50
+    b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
+    c = 1.25 # Length of joint 1 to 2.
+
+    # Angles using cosine laws
+    alpha   = acos((b*b + c*c - a*a) / (2*b*c))
+    beta    = acos((a*a + c*c - b*b) / (2*a*c))
+
+    delta   = atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
+    theta2  = pi/2 - alpha - delta
+
+    # Look at Z position of -0.054 in link 4 and use it to calculate epsilon
+    epsilon = 0.036 
+    theta3  = pi/2 - (beta + epsilon)
 
     R0_3 = T0_1[0:3,0:3] * T1_2[0:3,0:3] * T2_3[0:3,0:3]
     R0_3 = R0_3.evalf(subs={q1:theta1, q2:theta2, q3:theta3})
