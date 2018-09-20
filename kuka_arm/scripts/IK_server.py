@@ -70,10 +70,11 @@ def calculate_123(R_EE, px, py, pz, roll, pitch, yaw):
     # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/87c52cd9-09ba-4414-bc30-24ae18277d24/concepts/8d553d46-d5f3-4f71-9783-427d4dbffa3a
     theta1 = atan2(WC[1], WC[0])
 
-    a = 1.501 # Found by using "measure" tool in Rviz.
+    a = 1.50
     b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
     c = 1.25 # Length of joint 1 to 2.
 
+    # Angles using cosine laws
     alpha   = acos((b*b + c*c - a*a) / (2*b*c))
     beta    = acos((a*a + c*c - b*b) / (2*a*c))
     delta   = atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
@@ -160,29 +161,14 @@ def handle_calculate_IK(req):
             
             R3_6 = R0_3.inv("LU") * R_EE
 
-            theta6 = atan2(-R3_6[1,1], R3_6[1,0])# +0.45370228
-            sq5 = -R3_6[1,1]/sin(theta6)
-            cq5 = R3_6[1,2]
-            theta5 = atan2(sq5, cq5)
-            sq4 = R3_6[2,2]/sin(theta5)
-            cq4 = -R3_6[0,2]/sin(theta5)
-            theta4 = atan2(sq4, cq4)
-
-            if x >= len(req.poses):
-                theta5 = theta5_fin
-                theta6 = theta6_fin
-
-            theta1_fin = theta1
-            theta2_fin = theta2
-            theta3_fin = theta3
-            theta4_fin = theta4
-            theta5_fin = theta5
-            theta6_fin = theta6
+            theta4 = atan2(R3_6[2, 2], -R3_6[0, 2])
+            theta5 = atan2(sqrt(R3_6[0, 2]**2+R3_6[2, 2]**2), R3_6[1, 2])
+            theta6 = atan2(-R3_6[1, 1], R3_6[1, 0])
 
             # Populate response for the IK request
             # In the next line replace theta1,theta2...,theta6 by your joint angle variables
-        joint_trajectory_point.positions = [theta1_fin, theta2_fin, theta3_fin, theta4_fin, theta5_fin, theta6_fin]
-        joint_trajectory_list.append(joint_trajectory_point)
+            joint_trajectory_point.positions = [theta1, theta2, theta3, theta4, theta5, theta6]
+            joint_trajectory_list.append(joint_trajectory_point)
 
         rospy.loginfo("length of Joint Trajectory List: %s" % len(joint_trajectory_list))
         return CalculateIKResponse(joint_trajectory_list)
