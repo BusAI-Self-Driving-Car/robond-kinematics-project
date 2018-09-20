@@ -25,12 +25,12 @@
 [image-total-transform]: ./writeup_images/total-transform.png
 [image-inididual-transform]: ./writeup_images/inididual-transform.png
 [image-fk-dh]: ./writeup_images/fk-dh.png
-[image-dh-table]: ./writeup_image/dh-table-handdraft.png
-[image-ik-1]: ./writeup_image/ik-1.png
-[image-ik-3]: ./writeup_image/ik-3.png
-[image-inverse-position-1]: ./writeup_image/inverse-position-1.png
-[image-inverse-position-2]: ./writeup_image/inverse-position-2.png
-[image-inverse-rotation]: ./writeup_image/inverse-rotation.png
+[image-dh-table]: ./writeup_images/dh-table-handdraft.png
+[image-ik-1]: ./writeup_images/ik-1.png
+[image-ik-3]: ./writeup_images/ik-3.png
+[image-inverse-position-1]: ./writeup_images/inverse-position-1.png
+[image-inverse-position-2]: ./writeup_images/inverse-position-2.png
+[image-inverse-rotation]: ./writeup_images/inverse-rotation.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
