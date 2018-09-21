@@ -136,28 +136,22 @@ def handle_calculate_IK(req):
             # https://classroom.udacity.com/nanodegrees/nd209/parts/7b2fd2d7-e181-401e-977a-6158c77bf816/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/87c52cd9-09ba-4414-bc30-24ae18277d24/concepts/8d553d46-d5f3-4f71-9783-427d4dbffa3a
             theta1 = atan2(WC[1], WC[0])
 
-            a = 1.50
-            b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
-            c = 1.25 # Length of joint 1 to 2.
+            side_a = 1.501
+            side_b = sqrt(pow((sqrt(WC[0]*WC[0]+WC[1]*WC[1])-0.35),2) + pow((WC[2]-0.75),2))
+            side_c = 1.25
 
-            # Angles using cosine laws
-            alpha   = acos((b*b + c*c - a*a) / (2*b*c))
-            beta    = acos((a*a + c*c - b*b) / (2*a*c))
-            delta   = atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
-            theta2  = pi/2 - alpha - delta
+            angle_a = acos((side_b*side_b+side_c*side_c-side_a*side_a)/(2*side_b*side_c))
+            angle_b = acos((side_a*side_a+side_c*side_c-side_b*side_b)/(2*side_a*side_c))
+            angle_c = acos((side_b*side_b+side_a*side_a-side_c*side_c)/(2*side_b*side_a))
 
+            theta2  = pi/2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0]*WC[0] + WC[1]*WC[1]) - 0.35)
             # Look at Z position of -0.054 in link 4 and use it to calculate epsilon
-            epsilon = 0.036 
-            theta3  = pi/2 - (beta + epsilon)
-
-            # if theta3.evalf() > 0.0:
-            #     R_EE = R_x * R_y * R_z
-            #     R_EE, WC, theta1, theta2, theta3 = calculate_123(R_EE, px, py, pz, roll, pitch, yaw)
+            theta3  = pi/2 - (angle_b + 0.036)
 
             R0_3 = T0_1[0:3,0:3] * T1_2[0:3,0:3] * T2_3[0:3,0:3]
             R0_3 = R0_3.evalf(subs={q1:theta1, q2:theta2, q3:theta3})
             
-            R3_6 = R0_3.inv("LU") * R_EE
+            R3_6 = R0_3.transpose() * R_EE
 
             theta4 = atan2(R3_6[2, 2], -R3_6[0, 2])
             theta5 = atan2(sqrt(R3_6[0, 2]**2+R3_6[2, 2]**2), R3_6[1, 2])
