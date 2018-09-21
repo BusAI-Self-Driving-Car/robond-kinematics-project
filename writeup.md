@@ -155,3 +155,22 @@ We can substitute the values we calculated for joints 1 to 3 in their respective
 
 The resultant matrix on the RHS (Right Hand Side of the equation) does not have any variables after substituting the joint angle values, and hence comparing LHS (Left Hand Side of the equation) with RHS will result in equations for joint 4, 5, and 6.
 
+### IK_debug
+
+The code populated in "IK_server.py" was tested firstly in IK_debug.py and proved the validality. 
+
+The computed errors of 6 angles for the test case are as follows,
+
+```
+Theta 1 error is: 0.00093770
+Theta 2 error is: 0.00096560
+Theta 3 error is: 0.00312069
+Theta 4 error is: 0.00153782
+Theta 5 error is: 0.00184772
+Theta 6 error is: 0.00225943
+```
+
+## Experiment Result
+
+[Youtube Video Link](https://www.youtube.com/...)
+
