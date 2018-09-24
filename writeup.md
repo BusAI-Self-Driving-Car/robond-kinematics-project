@@ -172,5 +172,5 @@ Theta 6 error is: 0.00225943
 
 ## Experiment Result
 
-[Youtube Video Link](https://www.youtube.com/...)
+[Youtube Video Link](https://youtu.be/wlhXFR8UUfk)
 
