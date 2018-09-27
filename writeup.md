@@ -18,7 +18,7 @@
 [image-ik-3]: ./writeup_images/ik-3.png
 [image-inverse-position-1]: ./writeup_images/inverse-position-1.png
 [image-inverse-position-2]: ./writeup_images/inverse-position-2.png
-[image-image-cos-law]: ./writeup_images/cos-law.png
+[image-cos-law]: ./writeup_images/cos-law.png
 
 ## Introduction
 
