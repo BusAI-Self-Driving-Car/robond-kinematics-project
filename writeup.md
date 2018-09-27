@@ -19,7 +19,7 @@
 [image-inverse-position-1]: ./writeup_images/inverse-position-1.png
 [image-inverse-position-2]: ./writeup_images/inverse-position-2.png
 [image-cos-law]: ./writeup_images/cos-law.png
-[image-video-screen]: ./writeup_images/video_screen.png
+[image-video-screen]: ./writeup_images/youtube_screenshot.png
 [image-success-proof]: ./writeup_images/success_proof.png
 
 ## Introduction
