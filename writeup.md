@@ -19,6 +19,8 @@
 [image-inverse-position-1]: ./writeup_images/inverse-position-1.png
 [image-inverse-position-2]: ./writeup_images/inverse-position-2.png
 [image-cos-law]: ./writeup_images/cos-law.png
+[image-video-screen]: ./writeup_images/video_screen.png
+[image-success-proof]: ./writeup_images/success_proof.png
 
 ## Introduction
 
@@ -258,5 +260,11 @@ Theta 6 error is: 0.00225943
 
 ## Experiment Result
 
-[Youtube Video Link](https://youtu.be/wlhXFR8UUfk)
+Youtube Video:
+
+[![Youtube Video Link][image-video-screen]](https://youtu.be/wlhXFR8UUfk)
+
+A screenshot after 9 successful trials:
+
+![alt text][image-success-proof]
 
