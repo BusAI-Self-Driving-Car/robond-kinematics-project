@@ -122,7 +122,17 @@ def test_code(test_case):
     T5_6 = trans_matrix(alpha5, a5, d6, q6).subs(s)
     T6_EE = trans_matrix(alpha6, a6, d7, q7).subs(s)
 
+    print(T0_1)
+    print(T1_2)
+    print(T2_3)
+    print(T3_4)
+    print(T4_5)
+    print(T5_6)
+    print(T6_EE)
+
     T0_EE = simplify(T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_EE)
+
+    print(T0_EE)
     
     px = req.poses[x].position.x
     py = req.poses[x].position.y
