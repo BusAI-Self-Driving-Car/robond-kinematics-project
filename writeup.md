@@ -18,7 +18,7 @@
 [image-ik-3]: ./writeup_images/ik-3.png
 [image-inverse-position-1]: ./writeup_images/inverse-position-1.png
 [image-inverse-position-2]: ./writeup_images/inverse-position-2.png
-[image-inverse-rotation]: ./writeup_images/inverse-rotation.png
+[image-image-cos-law]: ./writeup_images/cos-law.png
 
 ## Introduction
 
@@ -173,9 +173,41 @@ Where R_corr is the correctional rotation matrix.
 
 Now nx, ny, and nz values can be extracted from this Rrpy matrix to obtain the wrist center position.
 
-#### Inverse rotation
+```
+WC = [[px], [py], [pz]] - 0.303 * Rrpy[:, 2]
+```
 
-![alt text][image-inverse-rotation]
+Since joint 1 is just the tan angle of rotation from the world x-axis to the grippers x, y coordinates.
+
+```
+theta1 = arctan2(WC_y, WC_x)
+```
+
+Based on cos law and the following graph,
+
+![alt text][image-cos-law]
+
+```
+side_a = 1.501
+
+side_b = sqrt((sqrt(WC[0]^2 + WC[1]^2) - 0.35)^2 + (WC[2] - 0.75)^2)
+
+side_c = 1.25
+
+angle_a = acos((side_b^2 + side_c^2 - side_a^2) / (2 * side_b * side_c))
+
+angle_b = acos((side_a^2 + side_c^2 - side_b^2) / (2 * side_a * side_c))
+```
+
+Then,
+
+```
+theta2 = pi/2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0]^2 + WC[1]^2) - 0.35)
+
+theta3 = pi/2 - (angle_b + 0.036) (constant accounts for sag in link4 of -0.054m)
+```
+
+#### Inverse rotation
 
 The labels 2, 3 and WC are Joint 2, Joint 3, and the Wrist Center, respectively. You can obtain, or rather visualize, the triangle between the three if you project the joints onto the z-y plane corresponding to the world reference frame. From your DH parameters, you can calculate the distance between each joint above. Using trigonometry, specifically the Cosine Laws, you can calculate theta 2 and theta 3.
 
@@ -198,6 +230,16 @@ We can substitute the values we calculated for joints 1 to 3 in their respective
 ```R3_6 = inv(R0_3) * Rrpy```
 
 The resultant matrix on the RHS (Right Hand Side of the equation) does not have any variables after substituting the joint angle values, and hence comparing LHS (Left Hand Side of the equation) with RHS will result in equations for joint 4, 5, and 6.
+
+Compute Euler angles from the rotation matrix from 3-6
+
+```
+theta4 = atan2(r36[2, 2], -r36[0, 2])
+
+theta5 = atan2(sqrt(r36[0, 2]^2 + r36[2, 2]^2), r36[1, 2])
+
+theta6 = atan2(-r36[1, 1], r36[1, 0])
+```
 
 ### IK_debug
 
